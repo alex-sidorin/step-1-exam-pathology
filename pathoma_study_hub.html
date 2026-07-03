@@ -1,0 +1,526 @@
+<style>
+  :root{
+    --paper:#EDEFEA;
+    --paper-deep:#E2E5DD;
+    --ink:#182225;
+    --ink-soft:#4B5A5A;
+    --hema:#5B4B93;
+    --eosin:#B23A2E;
+    --eosin-soft:#D97B6C;
+    --line:#C9CFC4;
+    --card-bg:#F8F8F4;
+    --good:#3F7A5C;
+  }
+  *{box-sizing:border-box;}
+  #ph-root{
+    font-family:'IBM Plex Sans',Arial,sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    padding:0;
+    border-radius:14px;
+    overflow:hidden;
+    border:1px solid var(--line);
+    min-height:640px;
+  }
+  #ph-root .serif{font-family:'Source Serif 4','Georgia',serif;}
+  #ph-root .mono{font-family:'IBM Plex Mono',monospace;}
+
+  .ph-header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:20px 26px;background:var(--ink);color:var(--paper);
+  }
+  .ph-header .title{font-family:'Source Serif 4',Georgia,serif;font-size:20px;letter-spacing:.2px;}
+  .ph-header .subtitle{font-size:11px;opacity:.65;margin-top:2px;letter-spacing:.6px;text-transform:uppercase;}
+  .stain-swatch{width:34px;height:10px;border-radius:2px;background:linear-gradient(90deg,var(--hema),var(--eosin));display:inline-block;margin-right:10px;vertical-align:middle;}
+  .ph-progress{display:flex;align-items:center;gap:10px;font-size:12px;}
+  .ring{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;background:conic-gradient(var(--eosin) calc(var(--pct)*1%), rgba(255,255,255,.15) 0);}
+  .ring-inner{width:34px;height:34px;border-radius:50%;background:var(--ink);display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;}
+
+  .ph-body{display:flex;min-height:560px;}
+  .ph-rail{
+    width:230px;flex-shrink:0;background:var(--paper-deep);border-right:1px solid var(--line);
+    padding:14px 10px;overflow-y:auto;max-height:640px;
+  }
+  .rail-item{
+    display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;
+    margin-bottom:3px;border:1px solid transparent;
+  }
+  .rail-item:hover{background:#DEE2D6;}
+  .rail-item.active{background:var(--card-bg);border-color:var(--line);box-shadow:0 1px 3px rgba(0,0,0,.08);}
+  .rail-day{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);width:34px;}
+  .rail-label{font-size:12.5px;line-height:1.25;flex:1;}
+  .rail-check{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--line);flex-shrink:0;}
+  .rail-check.done{background:var(--good);border-color:var(--good);}
+  .rail-swatch{width:4px;align-self:stretch;border-radius:2px;background:linear-gradient(180deg,var(--hema),var(--eosin));}
+
+  .ph-main{flex:1;padding:24px 30px;overflow-y:auto;max-height:640px;}
+  .day-eyebrow{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:4px;}
+  .day-title{font-family:'Source Serif 4',Georgia,serif;font-size:26px;margin:0 0 14px 0;}
+  .chapter-chip{
+    display:inline-block;background:var(--card-bg);border:1px solid var(--line);border-radius:20px;
+    padding:5px 13px;font-size:12px;margin:0 8px 8px 0;
+  }
+  .section-label{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--hema);font-weight:600;margin:22px 0 10px;}
+  .obj-list{margin:0;padding-left:18px;font-size:14px;line-height:1.65;}
+  .obj-list li{margin-bottom:4px;}
+
+  .pathway{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:8px 0 4px;}
+  .pw-step{background:var(--card-bg);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:12.5px;max-width:160px;}
+  .pw-arrow{color:var(--eosin-soft);font-size:16px;}
+
+  .btn{
+    font-family:'IBM Plex Sans',sans-serif;border:none;border-radius:8px;padding:10px 18px;font-size:13px;
+    cursor:pointer;font-weight:600;letter-spacing:.2px;
+  }
+  .btn-primary{background:var(--eosin);color:#fff;}
+  .btn-primary:hover{background:#963026;}
+  .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--ink);}
+  .btn-ghost:hover{background:var(--card-bg);}
+  .btn-row{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;}
+
+  .day-stats{font-size:12px;color:var(--ink-soft);margin-top:6px;}
+
+  /* flashcard view */
+  .fc-wrap{display:flex;flex-direction:column;align-items:center;padding-top:6px;}
+  .fc-progress{width:100%;max-width:460px;height:4px;background:var(--line);border-radius:3px;margin-bottom:22px;overflow:hidden;}
+  .fc-progress-fill{height:100%;background:var(--eosin);transition:width .25s;}
+  .fc-card{
+    width:100%;max-width:460px;min-height:220px;background:var(--card-bg);border:1px solid var(--line);
+    border-radius:14px;padding:28px;display:flex;align-items:center;justify-content:center;text-align:center;
+    cursor:pointer;font-size:16px;line-height:1.5;position:relative;box-shadow:0 2px 10px rgba(0,0,0,.06);
+  }
+  .fc-tag{position:absolute;top:12px;left:16px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);}
+  .fc-hint{font-size:11px;color:var(--ink-soft);margin-top:12px;}
+  .fc-actions{display:flex;gap:10px;margin-top:20px;}
+  .fc-count{font-size:12px;color:var(--ink-soft);margin-bottom:8px;font-family:'IBM Plex Mono',monospace;}
+  .fc-done{text-align:center;padding:40px 0;}
+  .fc-done .serif{font-size:22px;margin-bottom:8px;}
+
+  @media (max-width:720px){
+    .ph-body{flex-direction:column;}
+    .ph-rail{width:100%;max-height:180px;}
+    .ph-main{max-height:none;}
+  }
+</style>
+
+<div id="ph-root">
+  <div class="ph-header">
+    <div>
+      <div class="title"><span class="stain-swatch"></span>Pathoma Step&nbsp;1 Study Hub</div>
+      <div class="subtitle">14-day sequential plan · 19 chapters</div>
+    </div>
+    <div class="ph-progress">
+      <div id="ph-ring" class="ring" style="--pct:0"><div class="ring-inner mono" id="ph-ring-text">0%</div></div>
+      <div>
+        <div id="ph-days-done" style="font-weight:600;">0 / 14 days</div>
+        <div id="ph-cards-done" class="mono" style="opacity:.7;font-size:11px;">0 / 0 cards mastered</div>
+      </div>
+    </div>
+  </div>
+  <div class="ph-body">
+    <div class="ph-rail" id="ph-rail"></div>
+    <div class="ph-main" id="ph-main"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+
+const DAYS = [
+{n:1, title:"Cell Injury & Adaptations", chapters:[{num:1,name:"Growth Adaptations, Cellular Injury, and Cell Death"}],
+ objectives:[
+  "Distinguish hyperplasia, hypertrophy, atrophy, metaplasia, and dysplasia",
+  "Reversible vs. irreversible cell injury — morphologic and biochemical markers of each",
+  "Free radical injury: generation, cellular targets, and elimination pathways",
+  "Necrosis subtypes: coagulative, liquefactive, gangrenous, caseous, fat, fibrinoid — and where each occurs",
+  "Apoptosis: intrinsic vs. extrinsic pathway triggers and key mediators",
+  "Intracellular accumulations and calcification: dystrophic vs. metastatic"],
+ pathway:{title:"Cell injury pathway", steps:["Stimulus (hypoxia, toxin)","Reversible injury (swelling, ATP↓)","Irreversible injury (membrane/mito damage)","Necrosis or Apoptosis"]},
+ cards:[
+  {q:"What is the earliest microscopic sign of reversible cell injury?",a:"Cellular swelling (hydropic change) — loss of ATP-dependent Na⁺/K⁺ pump function lets sodium and water flood in."},
+  {q:"What finding on electron microscopy marks the point of irreversible injury?",a:"Plasma membrane blebbing/damage and mitochondrial swelling with amorphous densities from Ca²⁺ influx."},
+  {q:"Which necrosis type follows ischemic infarction of the heart, kidney, or spleen?",a:"Coagulative necrosis — cell outlines and tissue architecture are preserved, but nuclei are lost."},
+  {q:"Which necrosis type is characteristic of brain infarction, and why?",a:"Liquefactive necrosis — the brain's high lipid content and low structural framework let enzymes digest it into a soft, cystic cavity."},
+  {q:"What triggers the intrinsic (mitochondrial) apoptosis pathway?",a:"Cellular stress (DNA damage, hypoxia) causes BAX/BAK to overwhelm BCL-2, releasing cytochrome c and activating caspases."},
+  {q:"How do dystrophic and metastatic calcification differ?",a:"Dystrophic: calcium deposits in already-damaged tissue with normal serum calcium. Metastatic: calcium deposits in normal tissue because serum calcium is elevated."}
+ ]},
+{n:2, title:"Inflammation & Wound Healing", chapters:[{num:2,name:"Inflammation, Inflammatory Disorders, and Wound Healing"}],
+ objectives:[
+  "Vascular and cellular events of acute inflammation; key chemical mediators",
+  "Leukocyte adhesion cascade — order of steps and molecules involved",
+  "Granulomatous inflammation: triggers and hallmark cells",
+  "Growth factors driving granulation tissue and scar formation",
+  "Primary vs. secondary intention wound healing",
+  "Cofactors required for proper collagen synthesis/cross-linking"],
+ cards:[
+  {q:"Which leukocyte dominates acute inflammation, and when does the shift to chronic cells happen?",a:"Neutrophils dominate the first 24–48 hours; macrophages become predominant by day 2–3."},
+  {q:"List the 4 steps of the leukocyte adhesion cascade in order.",a:"Rolling (selectins) → firm adhesion (integrins) → transmigration (PECAM-1/CD31) → chemotaxis (chemokine gradient)."},
+  {q:"What triggers granuloma formation, and what's the hallmark cell?",a:"Persistent, poorly-degradable antigens (TB, fungi, foreign material) driving Th1-mediated macrophage activation into epithelioid histiocytes, which can fuse into multinucleated giant cells."},
+  {q:"Which growth factors drive angiogenesis vs. fibroblast recruitment in granulation tissue?",a:"VEGF drives angiogenesis; PDGF and TGF-β recruit fibroblasts and stimulate collagen synthesis."},
+  {q:"How does primary intention healing differ from secondary intention?",a:"Primary: apposed edges, minimal granulation tissue/scar (e.g. surgical incision). Secondary: separated edges, more granulation tissue, wound contraction via myofibroblasts, larger scar."},
+  {q:"Why does vitamin C deficiency impair wound healing?",a:"Vitamin C is a required cofactor for prolyl/lysyl hydroxylase, which hydroxylate procollagen; without it, collagen can't cross-link properly."}
+ ]},
+{n:3, title:"Neoplasia & Hemostasis", chapters:[{num:3,name:"Principles of Neoplasia"},{num:4,name:"Hemostasis and Related Disorders"}],
+ objectives:[
+  "Benign vs. malignant tumor nomenclature",
+  "Carcinoma in situ vs. invasive carcinoma",
+  "Tumor grade vs. stage — and which matters more prognostically",
+  "Knudson's two-hit hypothesis for tumor suppressor genes",
+  "PT vs. PTT — which pathway each measures",
+  "Platelet disorders: Bernard-Soulier vs. Glanzmann thrombasthenia",
+  "DIC lab findings; Hemophilia A vs. B"],
+ pathway:{title:"Coagulation cascade (simplified)", steps:["Extrinsic (VIIa) → measured by PT","Intrinsic (VIII,IX,XI,XII) → measured by PTT","Common pathway (X,V,II)","Fibrin clot"]},
+ cards:[
+  {q:"What distinguishes carcinoma in situ from invasive carcinoma?",a:"CIS has malignant cytology but an intact basement membrane; invasive carcinoma has breached it."},
+  {q:"Which matters more prognostically, tumor grade or stage?",a:"Stage (extent of spread) generally outweighs grade (degree of differentiation)."},
+  {q:"What does Knudson's two-hit hypothesis explain?",a:"Both alleles of a tumor suppressor gene must be inactivated for cancer to arise — explains why inherited syndromes (already carrying one hit) present earlier and often bilaterally."},
+  {q:"PT measures which pathway? PTT measures which?",a:"PT = extrinsic + common pathway (factor VII). PTT = intrinsic + common pathway (factors VIII, IX, XI, XII)."},
+  {q:"Bernard-Soulier vs. Glanzmann thrombasthenia — what's deficient in each?",a:"Bernard-Soulier: deficient GpIb (platelet–vWF adhesion). Glanzmann: deficient GpIIb/IIIa (platelet–platelet aggregation)."},
+  {q:"What's the classic DIC lab triad?",a:"Prolonged PT/PTT, low platelets (consumption), and elevated D-dimer, often with schistocytes on smear."},
+  {q:"Hemophilia A vs. B — which factor is deficient in each?",a:"Hemophilia A = factor VIII deficiency; Hemophilia B = factor IX deficiency. Both X-linked, both prolong PTT with normal PT."}
+ ]},
+{n:4, title:"RBC & WBC Disorders", chapters:[{num:5,name:"Red Blood Cell Disorders"},{num:6,name:"White Blood Cell Disorders"}],
+ objectives:[
+  "Microcytic anemia differential and how to distinguish the causes",
+  "Hereditary spherocytosis and G6PD deficiency — defect and trigger",
+  "B12 vs. folate deficiency — the key clinical differentiator",
+  "Leukemoid reaction vs. CML",
+  "Key genetic markers: BCR-ABL, Auer rods, Reed-Sternberg cells"],
+ cards:[
+  {q:"What are the four main causes of microcytic anemia?",a:"Iron deficiency, anemia of chronic disease (late), thalassemia, and sideroblastic anemia."},
+  {q:"How do you distinguish iron deficiency anemia from anemia of chronic disease on labs?",a:"Iron deficiency: low ferritin, low iron, high TIBC. Anemia of chronic disease: normal/high ferritin, low iron, low TIBC (hepcidin sequesters iron)."},
+  {q:"What's the underlying defect in hereditary spherocytosis, and how is it diagnosed?",a:"Defective RBC membrane cytoskeletal proteins (spectrin/ankyrin) cause spherical, fragile cells; diagnosed by an increased osmotic fragility test, with splenomegaly and extravascular hemolysis."},
+  {q:"What triggers hemolysis in G6PD deficiency?",a:"Oxidative stress (infection, sulfa drugs, primaquine, fava beans) depletes glutathione, causing Heinz bodies and hemolysis."},
+  {q:"What clinically distinguishes B12 from folate deficiency?",a:"Both cause macrocytic anemia with hypersegmented neutrophils, but B12 deficiency also causes subacute combined degeneration (neurologic symptoms)."},
+  {q:"How is a leukemoid reaction distinguished from CML?",a:"Leukemoid reaction: reactive leukocytosis with a HIGH leukocyte alkaline phosphatase (LAP) score. CML: LOW LAP score plus the BCR-ABL t(9;22) translocation."},
+  {q:"Auer rods point to which leukemia?",a:"Acute myeloid leukemia (AML), especially the acute promyelocytic subtype, t(15;17)."},
+  {q:"Reed-Sternberg cells are diagnostic of what?",a:"Hodgkin lymphoma — a binucleate 'owl-eye' cell, CD15+/CD30+."}
+ ]},
+{n:5, title:"Vascular & Cardiac Pathology", chapters:[{num:7,name:"Vascular Pathology"},{num:8,name:"Cardiac Pathology"}],
+ objectives:[
+  "ANCA-associated vasculitides and their target organs",
+  "IgA vasculitis (Henoch-Schönlein) — classic presentation",
+  "Kawasaki disease's feared complication",
+  "Atherosclerotic plaque anatomy",
+  "STEMI vs. NSTEMI; MI healing timeline",
+  "Concentric vs. eccentric LV hypertrophy"],
+ cards:[
+  {q:"Which vasculitis is strongly associated with c-ANCA (PR3-ANCA)?",a:"Granulomatosis with polyangiitis — affects upper/lower respiratory tract and kidneys."},
+  {q:"Which vasculitis affects children with palpable purpura, arthralgia, abdominal pain, and IgA nephropathy?",a:"IgA vasculitis (Henoch-Schönlein purpura)."},
+  {q:"What's the most feared complication of Kawasaki disease?",a:"Coronary artery aneurysm, risking thrombosis or rupture."},
+  {q:"Describe the layers of an atherosclerotic plaque from lumen outward.",a:"Fibrous cap (smooth muscle + collagen) over a necrotic lipid core with foam cells, cholesterol clefts, and calcification."},
+  {q:"How do STEMI and NSTEMI differ on ECG?",a:"STEMI: ST elevation from transmural (full-thickness) infarction. NSTEMI: ST depression/T-wave inversion from subendocardial infarction. Both raise troponin."},
+  {q:"When is the risk of free wall rupture highest after an MI, and why?",a:"~Days 4–7, when macrophages have cleared necrotic debris but granulation tissue hasn't yet provided structural strength."},
+  {q:"What causes concentric vs. eccentric LV hypertrophy?",a:"Concentric: pressure overload (HTN, aortic stenosis) — sarcomeres added in parallel. Eccentric: volume overload (regurgitation) — sarcomeres added in series."}
+ ]},
+{n:6, title:"Respiratory & GI Pathology", chapters:[{num:9,name:"Respiratory Tract Pathology"},{num:10,name:"Gastrointestinal Pathology"}],
+ objectives:[
+  "Obstructive vs. restrictive lung disease on spirometry",
+  "Lung cancer subtypes and their associations",
+  "Asbestosis and mesothelioma risk",
+  "Barrett esophagus and H. pylori-associated disease",
+  "Crohn disease vs. ulcerative colitis",
+  "Familial adenomatous polyposis"],
+ cards:[
+  {q:"How do obstructive and restrictive lung disease differ on spirometry?",a:"Obstructive: decreased FEV1/FVC ratio (<70%). Restrictive: normal/increased FEV1/FVC with decreased total lung capacity."},
+  {q:"Which lung cancer subtypes are centrally located and most linked to smoking?",a:"Squamous cell carcinoma and small cell carcinoma; squamous cell can also cause hypercalcemia via PTHrP."},
+  {q:"Which pneumoconiosis raises mesothelioma risk, and what's the histologic clue?",a:"Asbestosis — look for ferruginous bodies."},
+  {q:"What is Barrett esophagus and why does it matter?",a:"Metaplasia of distal esophageal squamous epithelium to columnar/intestinal-type epithelium from chronic GERD; raises risk of esophageal adenocarcinoma."},
+  {q:"What GI conditions are linked to H. pylori?",a:"Chronic gastritis, peptic ulcer disease (duodenal > gastric), gastric adenocarcinoma, and MALT lymphoma."},
+  {q:"How do Crohn disease and ulcerative colitis differ in location/depth?",a:"Crohn: skip lesions, transmural, mouth-to-anus (often terminal ileum), noncaseating granulomas. UC: continuous, mucosal/submucosal, colon only, starting at rectum."},
+  {q:"FAP — gene, inheritance, and outcome without treatment?",a:"APC gene mutation, autosomal dominant; nearly 100% progress to colorectal cancer without prophylactic colectomy."}
+ ]},
+{n:7, title:"Review — Chapters 1–10", review:true, range:[1,6],
+ objectives:[
+  "Sweep every flashcard from Days 1–6 and re-drill anything marked 'review again'",
+  "Redraw the cell injury pathway and coagulation cascade from memory",
+  "Self-test: list every necrosis subtype and where each occurs",
+  "Self-test: differentiate nephritic-pattern vs. vasculitic vs. neoplastic bleeding disorders you've covered so far",
+  "Do a timed practice question block (UWorld/Sketchy-style) covering general path, heme, cardio, pulm, and GI"]},
+{n:8, title:"Hepatobiliary & Renal Pathology", chapters:[{num:11,name:"Exocrine Pancreas, Gallbladder, and Liver Pathology"},{num:12,name:"Kidney and Urinary Tract Pathology"}],
+ objectives:[
+  "Causes of acute pancreatitis; Charcot triad for cholangitis",
+  "AST:ALT ratio in alcoholic liver disease",
+  "Micronodular vs. macronodular cirrhosis",
+  "Nephritic vs. nephrotic syndrome",
+  "Minimal change disease and poststreptococcal GN findings",
+  "Causes of acute tubular necrosis"],
+ pathway:{title:"Nephritic vs. Nephrotic", steps:["Nephritic: hematuria, RBC casts, HTN, mild proteinuria","Nephrotic: massive proteinuria, hypoalbuminemia, edema, hyperlipidemia"]},
+ cards:[
+  {q:"What are the two most common causes of acute pancreatitis?",a:"Gallstones and alcohol use."},
+  {q:"What is Charcot's triad for ascending cholangitis?",a:"Jaundice, fever/chills, and right upper quadrant pain."},
+  {q:"What AST:ALT pattern suggests alcoholic liver disease?",a:"AST:ALT ratio greater than 2:1 (versus viral hepatitis, where ALT typically exceeds AST)."},
+  {q:"What typically causes micronodular vs. macronodular cirrhosis?",a:"Micronodular (small, uniform nodules): alcohol/metabolic causes. Macronodular (larger, irregular nodules): often post-viral hepatitis."},
+  {q:"How do nephritic and nephrotic syndrome differ clinically?",a:"Nephritic: hematuria, RBC casts, hypertension, modest proteinuria (inflammatory GBM disruption). Nephrotic: massive proteinuria (>3.5g/day), hypoalbuminemia, edema, hyperlipidemia (podocyte damage)."},
+  {q:"Minimal change disease — EM finding?",a:"Diffuse effacement of podocyte foot processes with an otherwise normal-appearing glomerulus on light microscopy; most common cause of nephrotic syndrome in children."},
+  {q:"Poststreptococcal GN — IF and EM findings?",a:"'Starry sky' granular IF pattern (IgG, IgM, C3) with subepithelial 'humps' on EM."},
+  {q:"What are the two main causes of acute tubular necrosis?",a:"Ischemia (e.g. hypotension) and nephrotoxins (aminoglycosides, contrast dye, myoglobin)."}
+ ]},
+{n:9, title:"Reproductive Pathology", chapters:[{num:13,name:"Female Genital System and Gestational Pathology"},{num:14,name:"Male Genital System Pathology"}],
+ objectives:[
+  "HPV subtypes and mechanism in cervical dysplasia",
+  "Complete vs. partial hydatidiform mole",
+  "Ovarian tumor markers",
+  "Endometriosis gross/histologic findings",
+  "Seminoma features; cryptorchidism risk",
+  "PSA and prostate pathology"],
+ cards:[
+  {q:"Which HPV subtypes carry the highest cervical cancer risk, and how do they act?",a:"HPV 16 and 18 — E6 inactivates p53, E7 inactivates Rb."},
+  {q:"How do complete and partial hydatidiform moles differ?",a:"Complete: 46XX, paternal-only (empty egg), higher hCG, no fetal tissue, higher choriocarcinoma risk. Partial: 69XXY (triploid), lower hCG, some fetal tissue present."},
+  {q:"What tumor marker is associated with epithelial ovarian tumors?",a:"CA-125 (e.g. serous carcinoma), though not highly specific."},
+  {q:"What's the classic gross finding of endometriosis?",a:"'Chocolate cysts' — endometrial glands/stroma outside the uterus (often ovaries) filled with old hemorrhage."},
+  {q:"What distinguishes seminoma histologically, and does it raise AFP?",a:"Homogeneous 'fried egg' cells with lymphocytic infiltrate, resembling ovarian dysgerminoma; usually does NOT elevate AFP."},
+  {q:"Cryptorchidism raises the risk of which testicular cancer?",a:"Seminoma."},
+  {q:"What does PSA reflect, and why is it not highly specific?",a:"A serine protease from prostate epithelium — elevated in both benign prostatic hyperplasia and carcinoma."}
+ ]},
+{n:10, title:"Endocrine & Breast Pathology", chapters:[{num:15,name:"Endocrine Pathology"},{num:16,name:"Breast Pathology"}],
+ objectives:[
+  "Type 1 vs. Type 2 diabetes mechanism",
+  "Pheochromocytoma triad",
+  "MEN1 vs. MEN2A vs. MEN2B tumor associations",
+  "Graves disease mechanism",
+  "Invasive ductal vs. lobular carcinoma",
+  "Inflammatory breast carcinoma"],
+ cards:[
+  {q:"What's the core mechanistic difference between Type 1 and Type 2 diabetes?",a:"Type 1: autoimmune beta-cell destruction → absolute insulin deficiency. Type 2: peripheral insulin resistance → eventual relative insulin deficiency."},
+  {q:"What's the classic symptom triad of pheochromocytoma?",a:"Episodic headache, palpitations/tachycardia, and diaphoresis, from catecholamine excess."},
+  {q:"What tumors define MEN1, MEN2A, and MEN2B?",a:"MEN1: pituitary, parathyroid, pancreatic tumors. MEN2A: medullary thyroid carcinoma, pheochromocytoma, parathyroid hyperplasia. MEN2B: medullary thyroid carcinoma, pheochromocytoma, mucosal neuromas/marfanoid habitus."},
+  {q:"What's the underlying mechanism of Graves disease?",a:"Autoantibodies (TSI) stimulate the TSH receptor, driving hyperthyroidism; associated with exophthalmos and pretibial myxedema."},
+  {q:"What's the most common breast cancer subtype overall?",a:"Invasive ductal carcinoma, no special type."},
+  {q:"What breast cancer subtype shows single-file 'Indian file' cells and loses E-cadherin?",a:"Invasive lobular carcinoma."},
+  {q:"What does peau d'orange skin in breast cancer indicate?",a:"Inflammatory breast carcinoma — tumor cells obstruct dermal lymphatics."}
+ ]},
+{n:11, title:"CNS Pathology", chapters:[{num:17,name:"Central Nervous System Pathology"}],
+ objectives:[
+  "Most common adult vs. pediatric primary brain tumors",
+  "Meningioma histology",
+  "Ependymoma vs. medulloblastoma rosette types",
+  "Locations and grades of the major CNS tumors"],
+ cards:[
+  {q:"What's the most common primary brain tumor in adults, and its histologic hallmark?",a:"Glioblastoma multiforme (grade IV astrocytoma) — pseudopalisading necrosis and marked cellular atypia."},
+  {q:"What's the most common primary brain tumor in children, and where does it occur?",a:"Pilocytic astrocytoma, typically cerebellar; look for Rosenthal fibers."},
+  {q:"What's the classic histologic finding of meningioma?",a:"Whorled spindle cells with psammoma bodies (concentric calcifications), from arachnoid cap cells."},
+  {q:"Perivascular pseudorosettes point to which pediatric tumor, and where does it arise?",a:"Ependymoma, typically in the 4th ventricle."},
+  {q:"Homer-Wright rosettes point to which tumor?",a:"Medulloblastoma — a highly malignant cerebellar tumor."}
+ ]},
+{n:12, title:"Musculoskeletal & Skin Pathology", chapters:[{num:18,name:"Musculoskeletal Pathology"},{num:19,name:"Skin Pathology"}],
+ objectives:[
+  "Osteoporosis vs. osteomalacia labs",
+  "Osteosarcoma vs. Ewing sarcoma — age, location, genetics",
+  "Osteoarthritis vs. rheumatoid arthritis",
+  "Basal cell carcinoma histology",
+  "ABCDE criteria for melanoma",
+  "Psoriasis histology"],
+ cards:[
+  {q:"How do osteoporosis and osteomalacia differ on labs?",a:"Osteoporosis: normal calcium/phosphate/alk phos, decreased bone mass. Osteomalacia (vitamin D deficiency): low calcium/phosphate, elevated alk phos, defective mineralization."},
+  {q:"Osteosarcoma — typical age, location, and imaging sign?",a:"Adolescents, metaphysis of long bones (distal femur/proximal tibia); Codman triangle/sunburst pattern."},
+  {q:"Ewing sarcoma — translocation, age, and periosteal reaction?",a:"t(11;22) EWS-FLI1, children/adolescents, diaphysis of long bones, 'onion-skin' periosteal reaction."},
+  {q:"How do osteoarthritis and rheumatoid arthritis differ fundamentally?",a:"OA: degenerative 'wear and tear,' no major systemic inflammation. RA: autoimmune, symmetric, inflammatory (anti-CCP, RF positive) with pannus formation."},
+  {q:"What's the histologic hallmark of basal cell carcinoma, and its main risk factor?",a:"Peripheral palisading of basal cells; UV exposure is the main risk factor. Rarely metastasizes."},
+  {q:"What does the ABCDE mnemonic evaluate?",a:"Melanoma risk: Asymmetry, Border irregularity, Color variation, Diameter >6mm, Evolution/change."},
+  {q:"What's the classic histologic finding in psoriasis?",a:"Parakeratotic scale, epidermal thickening (acanthosis), thinned suprapapillary plate, and Munro microabscesses."}
+ ]},
+{n:13, title:"Full Review Sweep", review:true, range:[8,12],
+ objectives:[
+  "Re-drill every card marked 'review again' across all 19 chapters",
+  "Redraw the nephritic-vs-nephrotic and cell injury diagrams from memory, unaided",
+  "Build your own comparison chart: MEN syndromes, pediatric CNS tumors, and bone tumors side by side",
+  "Do a full 40-question timed practice block mixing all organ systems",
+  "Flag your 3 weakest chapters for one more targeted pass"]},
+{n:14, title:"Final Review & Practice Exam", review:true, range:[1,12],
+ objectives:[
+  "Run one complete flashcard sweep — every day, every card, no skipping",
+  "Simulate a timed practice block under real exam conditions (no notes, strict time)",
+  "Review only what you missed — don't re-study material you already know cold",
+  "Get sleep the night before your exam — recognition memory drops sharply with fatigue",
+  "Trust the repetition you've put in over these 14 days"]}
+];
+
+// ---------- state ----------
+let state = {daysDone:{}, cards:{}}; // cards[id] = 'known' | undefined
+let currentDay = 1;
+let fcQueue = [];
+let fcIndex = 0;
+let fcFlipped = false;
+
+function allCardIds(dayObj){
+  if (dayObj.review){
+    const ids = [];
+    DAYS.filter(d=>!d.review && d.n>=dayObj.range[0] && d.n<=dayObj.range[1]).forEach(d=>{
+      (d.cards||[]).forEach((c,i)=>ids.push('d'+d.n+'-'+i));
+    });
+    return ids;
+  }
+  return (dayObj.cards||[]).map((c,i)=>'d'+dayObj.n+'-'+i);
+}
+function cardById(id){
+  const [dPart, idx] = id.split('-');
+  const dn = parseInt(dPart.slice(1));
+  const d = DAYS.find(x=>x.n===dn);
+  return d.cards[parseInt(idx)];
+}
+function totalCardCount(){
+  let t=0; DAYS.forEach(d=>{ if(!d.review) t += (d.cards||[]).length; });
+  return t;
+}
+function knownCardCount(){
+  return Object.values(state.cards).filter(v=>v==='known').length;
+}
+
+async function loadState(){
+  try{
+    const r = await window.storage.get('ph-progress', false);
+    if (r && r.value) state = JSON.parse(r.value);
+  }catch(e){ /* no saved state yet */ }
+}
+async function saveState(){
+  try{ await window.storage.set('ph-progress', JSON.stringify(state), false); }
+  catch(e){ console.error('save failed', e); }
+}
+
+// ---------- render ----------
+function renderAll(){
+  renderHeader();
+  renderRail();
+  renderMain();
+}
+
+function renderHeader(){
+  const daysDoneCount = Object.values(state.daysDone).filter(Boolean).length;
+  const total = totalCardCount();
+  const known = knownCardCount();
+  const pct = total ? Math.round((known/total)*100) : 0;
+  document.getElementById('ph-days-done').textContent = daysDoneCount + ' / 14 days';
+  document.getElementById('ph-cards-done').textContent = known + ' / ' + total + ' cards mastered';
+  document.getElementById('ph-ring').style.setProperty('--pct', pct);
+  document.getElementById('ph-ring-text').textContent = pct + '%';
+}
+
+function renderRail(){
+  const rail = document.getElementById('ph-rail');
+  rail.innerHTML = '';
+  DAYS.forEach(d=>{
+    const item = document.createElement('div');
+    item.className = 'rail-item' + (d.n===currentDay ? ' active':'');
+    const done = !!state.daysDone[d.n];
+    item.innerHTML = `
+      <div class="rail-swatch"></div>
+      <div class="rail-day mono">D${d.n}</div>
+      <div class="rail-label">${d.title}</div>
+      <div class="rail-check ${done?'done':''}"></div>
+    `;
+    item.onclick = ()=>{ currentDay = d.n; fcQueue=[]; renderAll(); };
+    rail.appendChild(item);
+  });
+}
+
+function renderMain(){
+  const main = document.getElementById('ph-main');
+  const d = DAYS.find(x=>x.n===currentDay);
+  const done = !!state.daysDone[d.n];
+
+  let chapterChips = '';
+  if (!d.review){
+    chapterChips = d.chapters.map(c=>`<span class="chapter-chip">Ch. ${c.num} — ${c.name}</span>`).join('');
+  } else {
+    chapterChips = `<span class="chapter-chip">Review: Days ${d.range[0]}–${d.range[1]}</span>`;
+  }
+
+  let pathwayHtml = '';
+  if (d.pathway){
+    pathwayHtml = `<div class="section-label">${d.pathway.title}</div><div class="pathway">` +
+      d.pathway.steps.map((s,i)=> `<div class="pw-step">${s}</div>` + (i<d.pathway.steps.length-1?'<div class="pw-arrow">→</div>':'')).join('') +
+      `</div>`;
+  }
+
+  const ids = allCardIds(d);
+  const knownInDay = ids.filter(id=>state.cards[id]==='known').length;
+
+  main.innerHTML = `
+    <div class="day-eyebrow">Day ${d.n} of 14</div>
+    <h2 class="day-title">${d.title}</h2>
+    <div>${chapterChips}</div>
+    <div class="section-label">Study objectives</div>
+    <ul class="obj-list">${d.objectives.map(o=>`<li>${o}</li>`).join('')}</ul>
+    ${pathwayHtml}
+    <div class="day-stats mono">${knownInDay} / ${ids.length} cards mastered for this day</div>
+    <div class="btn-row">
+      ${ids.length ? `<button class="btn btn-primary" id="ph-start-fc">Drill flashcards (${ids.length})</button>` : ''}
+      <button class="btn btn-ghost" id="ph-toggle-done">${done ? '✓ Marked complete' : 'Mark day complete'}</button>
+    </div>
+    <div id="ph-fc-zone" style="margin-top:26px;"></div>
+  `;
+
+  const startBtn = document.getElementById('ph-start-fc');
+  if (startBtn) startBtn.onclick = ()=> startFlashcards(d);
+  document.getElementById('ph-toggle-done').onclick = async ()=>{
+    state.daysDone[d.n] = !state.daysDone[d.n];
+    await saveState();
+    renderAll();
+  };
+}
+
+function startFlashcards(d){
+  fcQueue = allCardIds(d).slice();
+  // put not-yet-known cards first
+  fcQueue.sort((a,b)=> (state.cards[a]==='known'?1:0) - (state.cards[b]==='known'?1:0));
+  fcIndex = 0;
+  fcFlipped = false;
+  renderFlashcard();
+}
+
+function renderFlashcard(){
+  const zone = document.getElementById('ph-fc-zone');
+  if (!zone) return;
+  if (fcIndex >= fcQueue.length){
+    zone.innerHTML = `<div class="fc-done"><div class="serif">Deck complete.</div><div style="color:var(--ink-soft);font-size:13px;">Nice work — come back anytime to re-drill.</div></div>`;
+    return;
+  }
+  const id = fcQueue[fcIndex];
+  const card = cardById(id);
+  const pct = Math.round((fcIndex/fcQueue.length)*100);
+  zone.innerHTML = `
+    <div class="fc-wrap">
+      <div class="fc-count">CARD ${fcIndex+1} / ${fcQueue.length}</div>
+      <div class="fc-progress"><div class="fc-progress-fill" style="width:${pct}%"></div></div>
+      <div class="fc-card" id="ph-fc-card">
+        <div class="fc-tag">${fcFlipped ? 'Answer' : 'Question'}</div>
+        <div>${fcFlipped ? card.a : card.q}</div>
+      </div>
+      <div class="fc-hint">${fcFlipped ? '' : 'Tap the card to reveal the answer'}</div>
+      <div class="fc-actions" id="ph-fc-actions" style="${fcFlipped ? '' : 'display:none;'}">
+        <button class="btn btn-ghost" id="ph-fc-again">Review again</button>
+        <button class="btn btn-primary" id="ph-fc-known">Got it</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('ph-fc-card').onclick = ()=>{
+    fcFlipped = !fcFlipped;
+    renderFlashcard();
+  };
+  if (fcFlipped){
+    document.getElementById('ph-fc-again').onclick = async (e)=>{
+      e.stopPropagation();
+      delete state.cards[id];
+      await saveState();
+      fcIndex++; fcFlipped=false;
+      renderFlashcard(); renderHeader();
+    };
+    document.getElementById('ph-fc-known').onclick = async (e)=>{
+      e.stopPropagation();
+      state.cards[id] = 'known';
+      await saveState();
+      fcIndex++; fcFlipped=false;
+      renderFlashcard(); renderHeader();
+    };
+  }
+}
+
+// ---------- init ----------
+(async function init(){
+  await loadState();
+  renderAll();
+})();
+
+})();
+</script>
